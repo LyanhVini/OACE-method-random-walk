@@ -12,15 +12,15 @@ O objetivo deste projeto é investigar a eficácia do método OACE em três cen�
 ## Cenários de Estudo
 - **Cenário 1: Alta Importância da Assertividade**
   - **Dataset**: [Chest X-Ray Pneumonia](https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia)
-  - **Parâmetro λ**: 0.9
+  - **Parâmetro λ** > 0.5
 
 - **Cenário 2: Equilíbrio entre Assertividade e Custo**
   - **Dataset**: [CIFAR-10](https://www.cs.toronto.edu/~kriz/cifar.html)
-  - **Parâmetro λ**: 0.5
+  - **Parâmetro** 0 < **λ** < 1
 
 - **Cenário 3: Alta Importância do Custo**
   - **Dataset**: [TrashNet](https://github.com/garythung/trashnet)
-  - **Parâmetro λ**: 0.1
+  - **Parâmetro λ** < 0.5
 
 ## Metodologia
 - **Random Walk**: Aplicamos um algoritmo de Random Walk para explorar diferentes configurações de taxa de aprendizado e seleção de modelos, identificando o melhor modelo em cada cenário.
