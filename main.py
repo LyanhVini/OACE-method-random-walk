@@ -4,16 +4,12 @@ Códigos de Auxílio:
     - https://github.com/rasbt/deeplearning-models/blob/master/pytorch-lightning_ipynb/cnn/cnn-alexnet-grouped-cifar10.ipynb
     - https://github.com/simoninithomas/cifar-10-classifier-pytorch/blob/master/PyTorch%20Cifar-10%20Classifier.ipynb
     - https://github.com/kuangliu/pytorch-cifar/blob/master/main.py
-    
-- IMPLEMENTAR UM RODADA ESQUENTA PARA OS MODELO PARA CAPTURAR OS MÁXIMOS E MÍNIMO E PADRONIOZÁ-LOS DURANTE AS ITERAÇÕES.
-
 """
 from datasets import *
 from models import *
 from metrics import *
 from hyperparameter_optimization import *
 from validation import *
-from visualization import *
 import json
 import torchvision.models as models
 import pickle
@@ -35,14 +31,13 @@ def main():
     models = [
     ("EfficientNetB0", get_efficientnet_b0),
     ("MobileNetV2", get_mobilenet_v2),
-    ("ResNet50", get_resnet50)
-    #("InceptionV3", get_inception_v3),
-    #("ViT", get_vit),
-    #("BEiT", get_beit)
-    #("VGG19", get_vgg19)
+    ("ResNet50", get_resnet50),
+    ("InceptionV3", get_inception_v3), 
+    ("ViT", get_vit),
+    ("VGG19", get_vgg19)
     ]
 
-    lbd = 0.7
+    lbd = 0.7 # lambda do método
     wa = [0.731, 0.188, 0.081] # Precision, Acuraccy, Recall
     wc = [0.731, 0.188, 0.081] # MTP, TPI, MSn
     
@@ -53,7 +48,6 @@ def main():
     print("Current GPU:", torch.cuda.current_device())
     print("GPU name:", torch.cuda.get_device_name(torch.cuda.current_device()))
     
-    #subsample_loader, classes = cifar_10_subsample()
     subsample_loader, classes = trashNet_subsample(dataset_dir)
     
     print("Classes:", classes)
@@ -66,13 +60,6 @@ def main():
     
     with open('warm_up_metrics.pkl', 'wb') as f:
         pickle.dump(warm_up_metrics, f)
-        
-    #max_assertividade, min_assertividade, max_custo, min_custo = get_max_min_metrics(warm_up_metrics)
-    #print("Metricas: ", warm_up_metrics)
-    #print("max_assertividade: ", max_assertividade)
-    #print("min_assertividade: ", min_assertividade)
-    #print("max_custo: ", max_custo)
-    #print("min_custo: ", min_custo)
     
     # Otimização de hiperparâmetros
     best_model_1, best_score_1, best_solution_1, metrics_per_iteration_1, oace_metrics_per_iteration_1 = optimize_hyperparameters(
@@ -82,6 +69,13 @@ def main():
     print(f"Best Score: {best_score_1}")
     print(f"Best Solution: {best_solution_1}")
     
+    with open('metrics_per_iteration.json', 'w') as f:
+        json.dump(metrics_per_iteration_1, f)
+            
+    with open('oace_metrics_per_iteration.json', 'w') as f:
+        json.dump(oace_metrics_per_iteration_1, f)
+        
+    """
     best_model_2, best_score_2, best_solution_2, metrics_per_iteration_2, oace_metrics_per_iteration_2 = optimize_hyperparameters(
                                                                                                                                 models, trainLoader_2, testLoader_2, validLoader_2, classes_2, lbd, wa, wc)
     
@@ -126,7 +120,7 @@ def main():
     
     with open('sumary_scores.json', 'w') as f:
         json.dump(sumary_scores_3, f)
-        
-if __name__ == "__main__":
-    
+    """
+
+if __name__ == "__main__":    
     main()

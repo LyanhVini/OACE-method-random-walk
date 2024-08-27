@@ -3,7 +3,6 @@ Validação dos modelos
 """
 from main import *
 
-
 def summarize_scores(oace_metrics_per_iteration):
     summary = {}
     

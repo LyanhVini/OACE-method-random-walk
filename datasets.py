@@ -1,10 +1,6 @@
 """
 Definição e processamento dos datasets.
-- Pegar um código para pegar um amaostra do cifar 10 com apenas duas classes e passar para aquecimento dos modelos
 """
-import pickle 
-import zipfile
-import os
 import torch
 import numpy as np
 from torch.utils.data import DataLoader, Subset
@@ -18,25 +14,22 @@ def chest_x_ray(train_dir, val_dir, test_dir, batch_size=32, num_workers=4):
     """Duas classes"""
     data_transform = {
         'train': transforms.Compose([
-            transforms.Resize(256),
+            transforms.Resize(224),
             transforms.CenterCrop(224),
-            #transforms.Resize((224, 224)),
             transforms.RandomHorizontalFlip(),
             transforms.RandomRotation(10),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'val': transforms.Compose([
-            transforms.Resize(256),
+            transforms.Resize(224),
             transforms.CenterCrop(224),
-            #transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ]),
         'test': transforms.Compose([
-            transforms.Resize(256),
+            transforms.Resize(224),
             transforms.CenterCrop(224),
-            #transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
         ])    
@@ -53,10 +46,8 @@ def chest_x_ray(train_dir, val_dir, test_dir, batch_size=32, num_workers=4):
         'val': torch.utils.data.DataLoader(image_datasets['val'], batch_size=1, shuffle=True, num_workers=num_workers),
         'test': torch.utils.data.DataLoader(image_datasets['test'], batch_size=1, shuffle=True, num_workers=num_workers)
     }
-    
-    #classes = ['NORMAL', 'PNEUMONIA']
+
     classes = image_datasets['train'].classes
-    
     return dataloaders['train'], dataloaders['val'], dataloaders['test'], classes
 
 def cifar_10(n_valid=0.2, batch_size=20, num_workers=0): 
@@ -95,12 +86,10 @@ def cifar_10(n_valid=0.2, batch_size=20, num_workers=0):
                                             batch_size = batch_size,
                                             num_workers = num_workers)
     
-    #classes = ["airplane", "automobile", "bird", "cat", "deer", "dog", "frog", "horse", "ship", "truck"]
     classes = train_data.classes
-    
     return trainLoader, validLoader, testLoader, classes
 
-def trashNet(dataset_dir, batch_size=32, val_split=0.2, test_split=0.1, num_workers=4):
+def trashNet(dataset_dir, batch_size=16, val_split=0.2, test_split=0.1, num_workers=4):
     """6 Classes"""
     data_transforms = {
         'train': transforms.Compose([
@@ -134,10 +123,8 @@ def trashNet(dataset_dir, batch_size=32, val_split=0.2, test_split=0.1, num_work
         'val': torch.utils.data.DataLoader(val_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers),
         'test': torch.utils.data.DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=num_workers)
     }
-    
-    #classes = ["cardboard", "glass", "metal", "paper", "plastic", "trash"]
+
     classes = dataset.classes
-    
     return dataloaders['train'], dataloaders['val'], dataloaders['test'], classes
 
 def verify_dataset(trainloader, valloader, testloader):
@@ -189,7 +176,7 @@ def cifar_10_subsample(batch_size=20, num_workers=0, class_labels=['cat', 'dog']
     
     return testLoader, classes
 
-def trashNet_subsample(dataset_dir, batch_size=32, num_workers=4, class_labels=['glass', 'plastic']):
+def trashNet_subsample(dataset_dir, batch_size=16, num_workers=4, class_labels=['glass', 'plastic']):
     """TrashNet with only two selected classes for testing"""
     data_transforms = {
         'val_test': transforms.Compose([
@@ -221,5 +208,5 @@ def trashNet_subsample(dataset_dir, batch_size=32, num_workers=4, class_labels=[
                             num_workers=num_workers)
     
     classes = class_labels
-    
     return testLoader, classes
+
