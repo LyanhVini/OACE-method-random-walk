@@ -10,7 +10,6 @@ import random
 import time
 import torch
 import torch.nn as nn
-from torchvision import datasets
 import torch.optim as optim
 from metrics import *
 from torchvision.models.inception import InceptionOutputs
@@ -35,7 +34,7 @@ def random_walk_step(solution, models, step_size=0.1):
     new_solution[1] = random.randint(0, len(models) - 1) 
     return new_solution
 
-def train_models(model, trainLoader, validLoader, criterion, optimizer, epochs=4, early_stopping_rounds=5):
+def train_models(model, trainLoader, validLoader, criterion, optimizer, epochs=10, early_stopping_rounds=5):
     """Treina o modelo e monitora a perda de validação para aplicar early stopping."""
     best_val_loss = float('inf')
     no_improvement_count = 0
@@ -59,7 +58,7 @@ def train_models(model, trainLoader, validLoader, criterion, optimizer, epochs=4
             # Verifica se a saída é do tipo InceptionOutputs
             if isinstance(output, InceptionOutputs):
                 output = output.logits  # Usa apenas a saída principal
-                
+              
             loss = criterion(output, target)
             loss.backward()
             optimizer.step()
@@ -100,7 +99,7 @@ def train_models(model, trainLoader, validLoader, criterion, optimizer, epochs=4
 
     return model
 
-def evaluate_solution(model, trainLoader, testLoader, validLoader, classes, criterion, optimizer, epochs=1):
+def evaluate_solution(model, trainLoader, testLoader, validLoader, criterion, optimizer):
     """
     - Avalia uma solução de modelo treinado medindo sua precisão, acurácia, recall, tempo de inferência, tamanho e número de parâmetros.
     - Esta função treina o modelo, realiza inferências no conjunto de testes e calcula várias métricas de desempenho, incluindo assertividade e custo computacional.
@@ -130,14 +129,19 @@ def evaluate_solution(model, trainLoader, testLoader, validLoader, classes, crit
 
     precision = precision_score(all_labels, all_preds, average='weighted', zero_division=0)
     accuracy = accuracy_score(all_labels, all_preds)
-    recall = recall_score(all_labels, all_preds, average='weighted', zero_division=0)
+    recall = recall_score(all_labels, all_preds, zero_division=0)# No dataset char x-ray average binary deve ser utilizada, para o restanto, micro ou average
+    
+    #print(f"Precision: {precision} \t Recall: {recall} \t Accuracy: {accuracy}") 
+    #conf_matrix = confusion_matrix(all_labels, all_preds)
+    #print(f"Confusion Matrix:\n{conf_matrix}")
+    
     avg_inference_time = sum(inference_times) / len(inference_times)
     num_params = sum(p.numel() for p in model.parameters()) / 1e6
     model_size = sum(p.element_size() * p.numel() for p in model.parameters()) / (1024 ** 2)
 
     return precision, accuracy, recall, avg_inference_time, model_size, num_params
 
-def optimize_hyperparameters(models, trainloader, testloader, validLoader, classes, lbd, wa, wc, max_iterations=15):
+def optimize_hyperparameters(models, trainloader, testloader, validLoader, classes, lbd, wa, wc, max_iterations=20):
     """Otimiza os hiperparâmetros dos modelos utilizando Random Walk e retorna as melhores soluções."""
     best_model = None
     best_score = float('-inf')
@@ -158,7 +162,7 @@ def optimize_hyperparameters(models, trainloader, testloader, validLoader, class
 
     for iteration in range(1, max_iterations + 1):
         
-        print(f"Iteration {iteration}")
+        print(f"Iteration {iteration}: model {solution[1]} e lr {solution[0]}")
 
         model_name, Model = models[solution[1]]
         model = Model(num_classes=len(classes)).to(device)
@@ -166,7 +170,7 @@ def optimize_hyperparameters(models, trainloader, testloader, validLoader, class
         criterion = nn.CrossEntropyLoss()
 
         precision, accuracy, recall, avg_inference_time, model_size, num_params = evaluate_solution(
-            model, trainloader, testloader, validLoader, classes, criterion, optimizer)
+            model, trainloader, testloader, validLoader, criterion, optimizer)
 
         # Armazena as métricas da iteração atual
         current_metrics = {
@@ -201,6 +205,8 @@ def optimize_hyperparameters(models, trainloader, testloader, validLoader, class
             "Score": score,
             "solution": {"lr": solution[0], "model_index": solution[1]}
         }
+        
+        print("Resultado do OACE por Iteração: ", oace_metrics_per_iteration)
 
         if score > best_score:
             best_score = score

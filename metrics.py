@@ -5,9 +5,6 @@ import numpy as np
 from models import *
 import numpy as np
 from pyDecision.algorithm import ahp_method
-import json
-import pandas as pd
-import matplotlib.pyplot as plt
 
 metrics_a = ["precision", "accuracy", "recall"]
 metrics_c = ["mtp", "tpi", "ms"]
@@ -84,15 +81,11 @@ def N(a_i, maximo, minimo):
 
 def A(metrics, wa, metricas_a, maximos_a, minimos_a):
     """Função de Assertividade do Método"""
-    print("max_assertiveness_A: ", maximos_a)
-    print("min_assertiveness_A: ", minimos_a)
     a_i = [metrics["assertividade"][metrica] for metrica in metricas_a]
     return sum([N(a, maximo, minimo) * w for a, maximo, minimo, w in zip(a_i, maximos_a, minimos_a, wa)])
 
 def C(metrics, wc, metricas_c, maximos_c, minimos_c):
     """Função de Custo do Método"""
-    print("max_cost_C: ", maximos_c)
-    print("min_cost_C: ", minimos_c)
     c_i = [metrics["custo"][metrica] for metrica in metricas_c]
     return sum([N(c, maximo, minimo) * w for c, maximo, minimo, w in zip(c_i, maximos_c, minimos_c, wc)])
 
