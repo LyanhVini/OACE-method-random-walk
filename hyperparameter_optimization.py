@@ -8,6 +8,7 @@ Implementação do Random Walk para otimização dos hiperparâmetros.
 import pickle
 import random
 import time
+import os
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -34,7 +35,7 @@ def random_walk_step(solution, models, step_size=0.1):
     new_solution[1] = random.randint(0, len(models) - 1) 
     return new_solution
 
-def train_models(model, trainLoader, validLoader, criterion, optimizer, epochs=10, early_stopping_rounds=5):
+def train_models(model, trainLoader, validLoader, criterion, optimizer, epochs=25, early_stopping_rounds=5):
     """Treina o modelo e monitora a perda de validação para aplicar early stopping."""
     best_val_loss = float('inf')
     no_improvement_count = 0
@@ -99,7 +100,7 @@ def train_models(model, trainLoader, validLoader, criterion, optimizer, epochs=1
 
     return model
 
-def evaluate_solution(model, trainLoader, testLoader, validLoader, criterion, optimizer):
+def evaluate_solution(model, trainLoader, testLoader, validLoader, criterion, optimizer, dataset_name):
     """
     - Avalia uma solução de modelo treinado medindo sua precisão, acurácia, recall, tempo de inferência, tamanho e número de parâmetros.
     - Esta função treina o modelo, realiza inferências no conjunto de testes e calcula várias métricas de desempenho, incluindo assertividade e custo computacional.
@@ -127,9 +128,15 @@ def evaluate_solution(model, trainLoader, testLoader, validLoader, criterion, op
             all_labels.extend(target.cpu().numpy())
             inference_times.append(inference_time)
 
-    precision = precision_score(all_labels, all_preds, average='weighted', zero_division=0)
+    # Defina o valor de 'average' com base no tipo de dataset
+    if dataset_name == "Chest X-Ray":
+        average_type = 'binary'
+    else:
+        average_type = 'macro'
+        
+    precision = precision_score(all_labels, all_preds, average=average_type, zero_division=0)
     accuracy = accuracy_score(all_labels, all_preds)
-    recall = recall_score(all_labels, all_preds, zero_division=0)# No dataset char x-ray average binary deve ser utilizada, para o restanto, micro ou average
+    recall = recall_score(all_labels, all_preds, average=average_type, zero_division=0)# No dataset char x-ray average binary deve ser utilizada, para o restanto, micro ou average
     
     #print(f"Precision: {precision} \t Recall: {recall} \t Accuracy: {accuracy}") 
     #conf_matrix = confusion_matrix(all_labels, all_preds)
@@ -139,14 +146,13 @@ def evaluate_solution(model, trainLoader, testLoader, validLoader, criterion, op
     num_params = sum(p.numel() for p in model.parameters()) / 1e6
     model_size = sum(p.element_size() * p.numel() for p in model.parameters()) / (1024 ** 2)
 
-    return precision, accuracy, recall, avg_inference_time, model_size, num_params
+    return float(precision), accuracy, float(recall), avg_inference_time, model_size, num_params
 
-def optimize_hyperparameters(models, trainloader, testloader, validLoader, classes, lbd, wa, wc, max_iterations=20):
+def optimize_hyperparameters(models, trainloader, testloader, validLoader, classes, lbd, wa, wc, dataset_name, checkpoint_path, max_iterations=100):
     """Otimiza os hiperparâmetros dos modelos utilizando Random Walk e retorna as melhores soluções."""
     best_model = None
     best_score = float('-inf')
     best_solution = None
-
     metrics_per_iteration = {iteration: {} for iteration in range(1, max_iterations + 1)}
     oace_metrics_per_iteration = {iteration: {} for iteration in range(1, max_iterations + 1)}
     
@@ -160,22 +166,36 @@ def optimize_hyperparameters(models, trainloader, testloader, validLoader, class
     maximos_c, minimos_c = get_max_min_metrics(warm_up_metrics)
     solution = generate_solution(models)
 
-    for iteration in range(1, max_iterations + 1):
-        
-        print(f"Iteration {iteration}: model {solution[1]} e lr {solution[0]}")
+    # Carregar o checkpoint e ajustar a iteração para continuar de onde parou
+    checkpoint = load_checkpoint(checkpoint_path)
+    if checkpoint:
+        # Se o checkpoint existir, começa a partir da iteração salva
+        iteration = checkpoint['iteration']
+        metrics_per_iteration = checkpoint['metrics_per_iteration']
+        oace_metrics_per_iteration = checkpoint['oace_metrics_per_iteration']
+        best_model = checkpoint['best_model']
+        best_score = checkpoint['best_score']
+        best_solution = checkpoint['best_solution']
+        print(f"Retomando a partir da iteração {iteration}...")
+    else:
+        iteration = 0
 
+    for iteration in range(iteration, max_iterations + 1):
+
+        print(f"Iteration {iteration}: model {solution[1]} e lr {solution[0]}")
+    
         model_name, Model = models[solution[1]]
         model = Model(num_classes=len(classes)).to(device)
         optimizer = optim.Adam(model.parameters(), lr=solution[0])
         criterion = nn.CrossEntropyLoss()
 
         precision, accuracy, recall, avg_inference_time, model_size, num_params = evaluate_solution(
-            model, trainloader, testloader, validLoader, criterion, optimizer)
+            model, trainloader, testloader, validLoader, criterion, optimizer, dataset_name)
 
         # Armazena as métricas da iteração atual
         current_metrics = {
             "model_name": model_name,
-            "assertividade": {"precision": precision, "accuracy": accuracy, "recall": recall},
+            "assertividade": {"precision": float(precision), "accuracy": accuracy, "recall": float(recall)},
             "custo": {"mtp": num_params, "tpi": avg_inference_time, "ms": model_size},
             "solution": {"lr": solution[0], "model_index": solution[1]}
         }
@@ -188,11 +208,10 @@ def optimize_hyperparameters(models, trainloader, testloader, validLoader, class
 
         maximos_a, minimos_a = calculo_maximum_minimum(accumulated_assertiveness_metrics, 
                                                        ["precision", "accuracy", "recall"])
-        
-        print("max_assertividade: ", maximos_a)
-        print("min_assertividade: ", minimos_a)
-        print("max_custo: ", maximos_c)
-        print("min_custo: ", minimos_c)
+        #print("max_assertividade: ", maximos_a)
+        #print("min_assertividade: ", minimos_a)
+        #print("max_custo: ", maximos_c)
+        #print("min_custo: ", minimos_c)
         
         a_value = A(metrics_per_iteration[iteration], wa, ["precision", "accuracy", "recall"], maximos_a, minimos_a)
         c_value = C(metrics_per_iteration[iteration], wc, ["mtp", "tpi", "ms"], maximos_c, minimos_c)
@@ -200,9 +219,9 @@ def optimize_hyperparameters(models, trainloader, testloader, validLoader, class
 
         oace_metrics_per_iteration[iteration] = {
             "model_name": model_name, 
-            "A": a_value,
-            "C": c_value,
-            "Score": score,
+            "A": float(a_value),
+            "C": float(c_value),
+            "Score": float(score),
             "solution": {"lr": solution[0], "model_index": solution[1]}
         }
         
@@ -214,9 +233,15 @@ def optimize_hyperparameters(models, trainloader, testloader, validLoader, class
             best_solution = solution.copy()
 
         solution = random_walk_step(solution, models)
+        # Salvando o checkpoint após cada iteração
+        save_checkpoint(iteration + 1, best_model, best_score, best_solution, metrics_per_iteration, oace_metrics_per_iteration, checkpoint_path)
+        # Verifica se atingiu o número máximo de iterações, caso sim, encerra o loop
+        if iteration > max_iterations:
+            print(f"Limite de iterações ({max_iterations}) alcançado. Método Finalizando.")
+            break
 
     return best_model, best_score, best_solution, metrics_per_iteration, oace_metrics_per_iteration
-
+    
 def warm_calculate_metrics(model, dataloader, device):
     """Calcula as métricas de custo no aquecimento para um modelo dado"""
     model.eval()
@@ -250,3 +275,26 @@ def warm_up_models(models, dataloader, device):
             'ms': model_size
         }
     return metrics
+
+def save_checkpoint(iteration, best_model, best_score, best_solution, metrics_per_iteration, oace_metrics_per_iteration, checkpoint_path):
+    """Salva o checkpoint durante o treinamento."""
+    checkpoint_data = {
+        'iteration': iteration,
+        'best_model': best_model,
+        'best_score': best_score,
+        'best_solution': best_solution,
+        'metrics_per_iteration': metrics_per_iteration,
+        'oace_metrics_per_iteration': oace_metrics_per_iteration
+    }
+    with open(checkpoint_path, 'wb') as f:
+        pickle.dump(checkpoint_data, f)
+    print(f"Checkpoint salvo na iteração {iteration}.")
+
+def load_checkpoint(checkpoint_path):
+    """Carrega o checkpoint, se existir."""
+    if os.path.exists(checkpoint_path):
+        with open(checkpoint_path, 'rb') as f:
+            checkpoint = pickle.load(f)
+        return checkpoint
+    else:
+        return None

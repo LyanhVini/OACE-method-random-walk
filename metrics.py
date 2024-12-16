@@ -68,8 +68,8 @@ def calculo_maximum_minimum(metrics_list, metricas_a):
             valores_a[metrica].append(float(metrics['assertividade'][metrica]))
     
     # Usar numpy para calcular os valores máximos e mínimos
-    max_metrics_a = [np.max(valores_a[metrica]) for metrica in metricas_a]
-    min_metrics_a = [np.min(valores_a[metrica]) for metrica in metricas_a]
+    max_metrics_a = [float(np.max(valores_a[metrica])) for metrica in metricas_a]
+    min_metrics_a = [float(np.min(valores_a[metrica])) for metrica in metricas_a]
     
     return max_metrics_a, min_metrics_a
 

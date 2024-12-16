@@ -14,6 +14,7 @@ import json
 import pickle
 
 def main():
+    # Definir o caminho do checkpoint
     
     datasets_options = {
         '1': 'Chest X-Ray',
@@ -37,7 +38,7 @@ def main():
         #subsample_loader, subsample_classes = chest_x_ray_subsample(test_dir)  
     elif choice == '2':
         lbd = 0.5
-        trainLoader, validLoader, testLoader, classes = cifar_10(batch_size=20)
+        trainLoader, validLoader, testLoader, classes = cifar_10(batch_size=32)
         dataset_name = datasets_options['2']
         #subsample_loader, subsample_classes = cifar_10_subsample|()      
     elif choice == '3':
@@ -47,7 +48,7 @@ def main():
         dataset_name = datasets_options['3']
         #subsample_loader, subsample_classes = trashNet_subsample(dataset_dir) 
     else:
-        print("Escolha Inválida.")
+        print("Escolha Inv1álida.")
         return
 
     models = [
@@ -55,13 +56,9 @@ def main():
         ("MobileNetV2", get_mobilenet_v2),
         ("ResNet50", get_resnet50),
         ("InceptionV3", get_inception_v3),
-        ("ViT", get_vit),
+        #("ViT", get_vit),
         ("VGG19", get_vgg19)
     ]
-    
-    wa = [0.731, 0.188, 0.081]  # Precision, Acuraccy, Recall
-    wc = [0.731, 0.188, 0.081]  # MTP, TPI, MS
-
     # Informações sobre o ambiente de execução
     print("INFORMAÇÕES SOBRE O AMBIENTE DE EXECUÇÃO: ")
     print("PyTorch version:", torch.__version__)
@@ -88,31 +85,53 @@ def main():
     
     # Otimização de hiperparâmetros com o dataset escolhido
     print(f"\nExecutando o método para o dataset: {dataset_name}...\n")
-    
+
+    checkpoint_path = "checkpoint.pkl"
+    # Verificar se existe um checkpoint
+    checkpoint = load_checkpoint(checkpoint_path)
+    if checkpoint:
+        # Carregar o checkpoint
+        iteration = checkpoint['iteration']
+        best_model = checkpoint['best_model']
+        best_score = checkpoint['best_score']
+        best_solution = checkpoint['best_solution']
+        metrics_per_iteration = checkpoint['metrics_per_iteration']
+        oace_metrics_per_iteration = checkpoint['oace_metrics_per_iteration']
+        print(f"Continuação do treinamento a partir da iteração {iteration}...")
+    else:
+        # Inicializar variáveis se não houver checkpoint
+        iteration = 0
+        best_model, best_score, best_solution = None, None, None
+        metrics_per_iteration = {}
+        oace_metrics_per_iteration = {}
+
     best_model, best_score, best_solution, metrics_per_iteration, oace_metrics_per_iteration = optimize_hyperparameters(
-        models, trainLoader, testLoader, validLoader, classes, lbd, wa, wc)
+        models, trainLoader, testLoader, validLoader, classes, lbd, wa, wc, dataset_name, checkpoint_path, max_iterations=100)
 
     print(f"Best Model: {best_model}")
     print(f"Best Score: {best_score}")
     print(f"Best Solution: {best_solution}")
     print(f"Método Finalizado: ")
 
-    # Resumo das métricas
-    summarize_scores_ = summarize_best_average_worst(oace_metrics_per_iteration)
-    rank_scores_ = rank_scores(oace_metrics_per_iteration)
-
-    print(f"\n-> summarize_scores_: {summarize_scores_}")
-    print(f"\n-> rank_scores_: {rank_scores_}")
-    
-    # Salvando as métricas
     with open('metrics_per_iteration.json', 'w') as f:
         json.dump(metrics_per_iteration, f)       
     with open('oace_metrics_per_iteration.json', 'w') as f:
         json.dump(oace_metrics_per_iteration, f)
+
+    # Resumo das métricas
+    summarize_scores_ = summarize_best_average_worst(oace_metrics_per_iteration)
+    rank_scores_ = rank_scores(oace_metrics_per_iteration)
+
     with open('summarize_score.json', 'w') as f:
         json.dump(summarize_scores_, f)
     with open('rank_scores.json', 'w') as f:
         json.dump(rank_scores_, f)
+
+    print(f"\n-> summarize_scores_: {summarize_scores_}")
+    print(f"\n-> rank_scores_: {rank_scores_}")
+    
+    #Salvando melhor modelo
+    torch.save(best_model, "full_best_model.pt")
 
     print(f"\nMétodo finalizado para o dataset: {dataset_name}")
 
