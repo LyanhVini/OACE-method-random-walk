@@ -79,6 +79,8 @@ def main():
 
     # Realiza o warm-up dos modelos
     warm_up_metrics = warm_up_models(models, subsample_loader, device)
+
+    print(warm_up_metrics)
     
     with open('warm_up_metrics.pkl', 'wb') as f:
         pickle.dump(warm_up_metrics, f)
