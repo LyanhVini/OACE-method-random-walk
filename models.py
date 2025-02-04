@@ -43,6 +43,9 @@ def get_vit(num_classes=10):
 
 def get_vgg19(num_classes=10):
     model = models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1)
+    # Congelar as camadas convolucionais
+    for param in model.features.parameters():
+        param.requires_grad = False
     model.classifier[6] = nn.Linear(model.classifier[6].in_features, num_classes)
     #print(model)
     return model

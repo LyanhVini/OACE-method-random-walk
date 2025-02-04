@@ -33,18 +33,18 @@ def main():
         train_dir = 'datasets/chest_xray/train'
         val_dir = 'datasets/chest_xray/val'
         test_dir = 'datasets/chest_xray/test'
-        trainLoader, validLoader, testLoader, classes = chest_x_ray(train_dir, val_dir, test_dir)
+        trainLoader, validLoader, testLoader, classes = chest_x_ray(train_dir, val_dir, test_dir, batch_size=32)
         dataset_name = datasets_options['1']
         #subsample_loader, subsample_classes = chest_x_ray_subsample(test_dir)  
     elif choice == '2':
         lbd = 0.5
-        trainLoader, validLoader, testLoader, classes = cifar_10(batch_size=32)
+        trainLoader, validLoader, testLoader, classes = cifar_10(batch_size=64)
         dataset_name = datasets_options['2']
         #subsample_loader, subsample_classes = cifar_10_subsample|()      
     elif choice == '3':
         lbd = 0.25
         dataset_dir = 'datasets/dataset-resized'
-        trainLoader, validLoader, testLoader, classes = trashNet(dataset_dir)
+        trainLoader, validLoader, testLoader, classes = trashNet(dataset_dir, batch_size=64)
         dataset_name = datasets_options['3']
         #subsample_loader, subsample_classes = trashNet_subsample(dataset_dir) 
     else:
@@ -52,10 +52,10 @@ def main():
         return
 
     models = [
-        ("EfficientNetB0", get_efficientnet_b0),
-        ("MobileNetV2", get_mobilenet_v2),
-        ("ResNet50", get_resnet50),
-        ("InceptionV3", get_inception_v3),
+        #("EfficientNetB0", get_efficientnet_b0),
+        #("MobileNetV2", get_mobilenet_v2),
+        #("ResNet50", get_resnet50),
+        #("InceptionV3", get_inception_v3),
         #("ViT", get_vit),
         ("VGG19", get_vgg19)
     ]

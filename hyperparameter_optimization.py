@@ -132,7 +132,7 @@ def evaluate_solution(model, trainLoader, testLoader, validLoader, criterion, op
     if dataset_name == "Chest X-Ray":
         average_type = 'binary'
     else:
-        average_type = 'macro'
+        average_type = 'micro'
         
     precision = precision_score(all_labels, all_preds, average=average_type, zero_division=0)
     accuracy = accuracy_score(all_labels, all_preds)
