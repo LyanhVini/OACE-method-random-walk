@@ -132,15 +132,11 @@ def evaluate_solution(model, trainLoader, testLoader, validLoader, criterion, op
     if dataset_name == "Chest X-Ray":
         average_type = 'binary'
     else:
-        average_type = 'micro'
+        average_type = 'macro'
         
     precision = precision_score(all_labels, all_preds, average=average_type, zero_division=0)
     accuracy = accuracy_score(all_labels, all_preds)
     recall = recall_score(all_labels, all_preds, average=average_type, zero_division=0)# No dataset char x-ray average binary deve ser utilizada, para o restanto, micro ou average
-    
-    #print(f"Precision: {precision} \t Recall: {recall} \t Accuracy: {accuracy}") 
-    #conf_matrix = confusion_matrix(all_labels, all_preds)
-    #print(f"Confusion Matrix:\n{conf_matrix}")
     
     avg_inference_time = sum(inference_times) / len(inference_times)
     num_params = sum(p.numel() for p in model.parameters()) / 1e6

@@ -33,7 +33,7 @@ def main():
         train_dir = 'datasets/chest_xray/train'
         val_dir = 'datasets/chest_xray/val'
         test_dir = 'datasets/chest_xray/test'
-        trainLoader, validLoader, testLoader, classes = chest_x_ray(train_dir, val_dir, test_dir, batch_size=32)
+        trainLoader, validLoader, testLoader, classes = chest_x_ray(train_dir, val_dir, test_dir, batch_size=64)
         dataset_name = datasets_options['1']
         #subsample_loader, subsample_classes = chest_x_ray_subsample(test_dir)  
     elif choice == '2':
@@ -57,7 +57,7 @@ def main():
         #("ResNet50", get_resnet50),
         #("InceptionV3", get_inception_v3),
         #("ViT", get_vit),
-        ("VGG19", get_vgg19)
+        ("VGG19", get_vgg16)
     ]
     # Informações sobre o ambiente de execução
     print("INFORMAÇÕES SOBRE O AMBIENTE DE EXECUÇÃO: ")
@@ -108,7 +108,7 @@ def main():
         oace_metrics_per_iteration = {}
 
     best_model, best_score, best_solution, metrics_per_iteration, oace_metrics_per_iteration = optimize_hyperparameters(
-        models, trainLoader, testLoader, validLoader, classes, lbd, wa, wc, dataset_name, checkpoint_path, max_iterations=100)
+        models, trainLoader, testLoader, validLoader, classes, lbd, wa, wc, dataset_name, checkpoint_path, max_iterations=25)
 
     print(f"Best Model: {best_model}")
     print(f"Best Score: {best_score}")
@@ -119,18 +119,6 @@ def main():
         json.dump(metrics_per_iteration, f)       
     with open('oace_metrics_per_iteration.json', 'w') as f:
         json.dump(oace_metrics_per_iteration, f)
-
-    # Resumo das métricas
-    summarize_scores_ = summarize_best_average_worst(oace_metrics_per_iteration)
-    rank_scores_ = rank_scores(oace_metrics_per_iteration)
-
-    with open('summarize_score.json', 'w') as f:
-        json.dump(summarize_scores_, f)
-    with open('rank_scores.json', 'w') as f:
-        json.dump(rank_scores_, f)
-
-    print(f"\n-> summarize_scores_: {summarize_scores_}")
-    print(f"\n-> rank_scores_: {rank_scores_}")
     
     #Salvando melhor modelo
     torch.save(best_model, "full_best_model.pt")

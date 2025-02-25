@@ -35,17 +35,13 @@ def get_inception_v3(num_classes=10):
     #print(model)
     return model
 
-def get_vit(num_classes=10):
-    model = models.vit_b_32(weights=models.ViT_B_32_Weights.IMAGENET1K_V1)
-    model.heads.head = nn.Linear(model.heads.head.in_features, num_classes)
-    #print(model)
-    return model
-
-def get_vgg19(num_classes=10):
-    model = models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1)
+def get_vgg16(num_classes=10):
+    #model = models.vgg19(weights=models.VGG19_Weights.IMAGENET1K_V1)
+    #model = models.vgg13(weights=models.VGG13_Weights.IMAGENET1K_V1)
+    #model = models.vgg16(weights=models.VGG16_Weights.IMAGENET1K_V1)
+    model = models.vgg16_bn(weights=models.VGG16_BN_Weights.IMAGENET1K_V1)
     # Congelar as camadas convolucionais
-    for param in model.features.parameters():
-        param.requires_grad = False
+    #for param in model.features.parameters():
+    #    param.requires_grad = False
     model.classifier[6] = nn.Linear(model.classifier[6].in_features, num_classes)
-    #print(model)
     return model
