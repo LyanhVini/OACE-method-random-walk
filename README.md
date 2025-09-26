@@ -33,16 +33,23 @@ O objetivo deste projeto é investigar a eficácia do método OACE em três cen�
 - **Definição de Pesos das Métricas (AHP)**: Para ponderar a importância de cada métrica, os pesos relativos foram calculados utilizando o método *Analytic Hierarchy Process* (AHP), que quantifica a relevância dos critérios com base em julgamentos par-a-par.
     - A matriz de importância relativa, aplicada tanto aos critérios de **assertividade** (precisão, acurácia, recall) quanto aos de **custo** (MTP, TPI, MS), é dada por:
       
-      ```math
-      A_{m \times n} = \begin{bmatrix}
-      1 & 5 & 7 \\
-      \frac{1}{5} & 1 & 3 \\
-      \frac{1}{7} & \frac{1}{3} & 1
-      \end{bmatrix}
-      ```
-      Onde os índices $m, n \in [1, 3]$ referem-se aos critérios na ordem em que foram listados.
+     a) **Matriz de Importância (Critérios de Assertividade)**
+      | Critério | Precisão | Acurácia | Recall |
+      | :--- | :---: | :---: | :---: |
+      | **Precisão** | 1 | 5 | 7 |
+      | **Acurácia** | 1/5 | 1 | 3 |
+      | **Recall** | 1/7 | 1/3 | 1 |
 
-    - O vetor de pesos resultante, comum a todos os cenários, foi $w_i^a, w_j^c \in \{0.731, 0.188, 0.081\}$.
+  <br>
+
+      c) **Matriz de Importância (Critérios de Custo)**
+      | Critério | MTP | TPI | MS |
+      | :--- | :---: | :---: | :---: |
+      | **MTP** | 1 | 5 | 7 |
+      | **TPI** | 1/5 | 1 | 3 |
+      | **MS** | 1/7 | 1/3 | 1 |
+
+    - O vetor de pesos resultante, comum a todos os cenários, foi $w \in \{0.731, 0.188, 0.081\}$, aplicado na mesma ordem dos critérios nas tabelas.
 
     - **Justificativa da Ponderação**:
         - **Assertividade**: A *precisão* obteve o maior peso (0.731) por refletir melhor a proporção de predições corretas positivas e evitar falsos positivos, superando a *acurácia* (0.188) e o *recall* (0.081).
