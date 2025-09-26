@@ -34,11 +34,11 @@ O objetivo deste projeto é investigar a eficácia do método OACE em três cen�
     - A matriz de importância relativa, aplicada tanto aos critérios de **assertividade** (precisão, acurácia, recall) quanto aos de **custo** (MTP, TPI, MS), é dada por:
       
       ```math
-      A_{m \times n} = \begin{bmatrix}
+      $A_{m \times n} = \begin{bmatrix}
       1 & 5 & 7 \\
       \frac{1}{5} & 1 & 3 \\
       \frac{1}{7} & \frac{1}{3} & 1
-      \end{bmatrix}
+      \end{bmatrix}$
       
       Onde os índices $m, n \in [1, 3]$ referem-se aos critérios na ordem em que foram listados.
 
