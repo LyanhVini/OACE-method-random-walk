@@ -23,9 +23,29 @@ O objetivo deste projeto é investigar a eficácia do método OACE em três cen�
   - **Parâmetro λ** < 0.5
 
 ## Metodologia
+
 - **Random Walk**: Aplicamos um algoritmo de Random Walk para explorar diferentes configurações de taxa de aprendizado e seleção de modelos, identificando o melhor modelo em cada cenário.
+
 - **Modelos Utilizados**: EfficientNet, MobileNet, ResNet, Inception, ViT e VGG.
+
 - **Pré-aquecimento dos Modelos**: Antes de aplicar o método OACE, os modelos passam por um pré-aquecimento utilizando uma versão reduzida dos datasets para capturar as métricas de custo e normalizá-los.
+
+- **Definição de Pesos das Métricas (AHP)**: Para ponderar a importância de cada métrica, os pesos relativos foram calculados utilizando o método *Analytic Hierarchy Process* (AHP), que quantifica a relevância dos critérios com base em julgamentos par-a-par.
+    - A matriz de importância relativa, aplicada tanto aos critérios de **assertividade** (precisão, acurácia, recall) quanto aos de **custo** (MTP, TPI, MS), é dada por:
+      $$
+      A_{m \times n} = \begin{bmatrix}
+      1 & 5 & 7 \\
+      \frac{1}{5} & 1 & 3 \\
+      \frac{1}{7} & \frac{1}{3} & 1
+      \end{bmatrix}
+      $$
+      Onde os índices \( m, n \in [1, 3]\) referem-se aos critérios na ordem em que foram listados.
+
+    - O vetor de pesos resultante, comum a todos os cenários, foi \( w_i^a, w_j^c \in \{0.731, 0.188, 0.081\} \).
+
+    - **Justificativa da Ponderação**:
+        - **Assertividade**: A *precisão* obteve o maior peso (0.731) por refletir melhor a proporção de predições corretas positivas e evitar falsos positivos, superando a *acurácia* (0.188) e o *recall* (0.081).
+        - **Custo**: O *MTP (Mean Time Prediction)* foi priorizado (0.731) por impactar diretamente a velocidade de execução e a memória, sendo considerado mais crítico que o *TPI (Time Per Inference)* (0.188) e o *MS (Model Size)* (0.081).
 
 ## Estrutura do Projeto
 - `base/`: Arquivos base e configurações.
