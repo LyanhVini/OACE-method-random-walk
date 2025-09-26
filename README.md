@@ -32,14 +32,24 @@ O objetivo deste projeto é investigar a eficácia do método OACE em três cen�
 
 - **Definição de Pesos das Métricas (AHP)**: Para ponderar a importância de cada métrica, os pesos relativos foram calculados utilizando o método *Analytic Hierarchy Process* (AHP), que quantifica a relevância dos critérios com base em julgamentos par-a-par.
     - A matriz de importância relativa, aplicada tanto aos critérios de **assertividade** (precisão, acurácia, recall) quanto aos de **custo** (MTP, TPI, MS), é dada por:
-      
+    
+    a) Métricas de Assertividade
+
     | Critério          | Prec. (1) | Acur. (2) | Recall (3) |
     |-------------------|-----------|-----------|------------|
     | **Precisão (1)**  | 1         | 5         | 7          |
     | **Acurácia (2)**  | 1/5       | 1         | 3          |
     | **Recall (3)**    | 1/7       | 1/3       | 1          |
 
-    - O vetor de pesos resultante, comum a todos os cenários, foi $w \in \{0.731, 0.188, 0.081\}$, aplicado na mesma ordem dos critérios nas tabelas.
+    b) Métricas de Custo Computacional
+
+    | Critério      | MTP (1) | TPI (2) | MS (3) |
+    |---------------|---------|---------|--------|
+    | **MTP (1)**   | 1       | 5       | 7      |
+    | **TPI (2)**   | 1/5     | 1       | 3      |
+    | **MS (3)**    | 1/7     | 1/3     | 1      |
+  
+    - Zpós a operação do AHP, com base nessa matriz de pesos, o vetor de pesos resultante, comum a todos os cenários, foi $w \in \{0.731, 0.188, 0.081\}$, aplicado na mesma ordem dos critérios nas tabelas.
 
     - **Justificativa da Ponderação**:
         - **Assertividade**: A *precisão* obteve o maior peso (0.731) por refletir melhor a proporção de predições corretas positivas e evitar falsos positivos, superando a *acurácia* (0.188) e o *recall* (0.081).
