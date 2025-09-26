@@ -33,7 +33,7 @@ O objetivo deste projeto é investigar a eficácia do método OACE em três cen�
 - **Definição de Pesos das Métricas (AHP)**: Para ponderar a importância de cada métrica, os pesos relativos foram calculados utilizando o método *Analytic Hierarchy Process* (AHP), que quantifica a relevância dos critérios com base em julgamentos par-a-par.
     - A matriz de importância relativa, aplicada tanto aos critérios de **assertividade** (precisão, acurácia, recall) quanto aos de **custo** (MTP, TPI, MS), é dada por:
       
-      
+      $$
       \begin{equation}
       A_{m \times n} = \begin{bmatrix}
       1 & 5 & 7 \\
@@ -41,7 +41,7 @@ O objetivo deste projeto é investigar a eficácia do método OACE em três cen�
       \frac{1}{7} & \frac{1}{3} & 1
       \end{bmatrix},
       \end{equation}
-      
+      $$
       
       Onde os índices $m, n \in [1, 3]$ referem-se aos critérios na ordem em que foram listados.
 
